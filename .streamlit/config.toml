@@ -2,7 +2,9 @@
 gatherUsageStats = false
 
 [server]
-headless = false
+# Must be true for cloud/server deploys — otherwise Streamlit hangs on the
+# first-run "enter your email" prompt and never binds to the port.
+headless = true
 
 [theme]
 base = "light"
