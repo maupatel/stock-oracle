@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+# Local launchers (Windows-only, not needed on the cloud host)
+*.vbs
+*.bat
+*.lnk
+.streamlit/secrets.toml
