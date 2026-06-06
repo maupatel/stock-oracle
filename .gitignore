@@ -4,4 +4,5 @@ __pycache__/
 *.vbs
 *.bat
 *.lnk
+*.ps1
 .streamlit/secrets.toml
