@@ -21,22 +21,24 @@ from ta.momentum import RSIIndicator
 from ta.volatility import BollingerBands, AverageTrueRange
 from ta.volume import OnBalanceVolumeIndicator
 
-st.set_page_config(page_title="Stock Oracle", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Stock Oracle", page_icon="◈", layout="wide", initial_sidebar_state="expanded")
 
-for k,v in {"theme":"light","result":None,"range":"6M","chart_type":"Line","ticker":"AAPL","picks_mode":"⭐ Potential Picks","watchlist":["AAPL","MSFT","NVDA"]}.items():
+for k,v in {"theme":"light","result":None,"range":"6M","chart_type":"Line","ticker":"AAPL","picks_mode":"Top Opportunities","watchlist":["AAPL","MSFT","NVDA"]}.items():
     if k not in st.session_state: st.session_state[k]=v
 
 DARK=st.session_state.theme=="dark"
 if DARK:
-    BG,SFC,CARD,BDR="#0A0A0A","#111111","#161616","#252525"
-    TXT,MUT,SUB="#FFFFFF","#888888","#333333"; CBG,CGRID="#080808","#1C1C1C"
-    G="#00C805"; R="#FF5000"
+    BG,SFC,CARD,BDR="#0B0F1A","#111726","#161E30","#27314A"
+    TXT,MUT,SUB="#F1F5F9","#94A3B8","#334155"; CBG,CGRID="#0B0F1A","#1B2335"
+    G="#22C55E"; R="#F43F5E"
 else:
-    BG,SFC,CARD,BDR="#FBFCFE","#FFFFFF","#FFFFFF","#E7EBF0"
-    TXT,MUT,SUB="#0F172A","#64748B","#CBD5E1"; CBG,CGRID="#FFFFFF","#EEF2F7"
+    BG,SFC,CARD,BDR="#F7F8FB","#FFFFFF","#FFFFFF","#E6E9F0"
+    TXT,MUT,SUB="#0F172A","#64748B","#CBD5E1"; CBG,CGRID="#FFFFFF","#EEF1F7"
     G="#16A34A"; R="#DC2626"
 
-BLU="#2563EB"; GLD="#F59E0B"; PRP="#8B5CF6"; CYN="#06B6D4"; ORG="#F97316"
+# ── Indigo & Slate palette (primary accent + supporting colors, used everywhere) ──
+BLU="#4F46E5"; TEAL="#0D9488"; GLD="#F59E0B"; PRP="#7C3AED"; CYN="#0EA5E9"; ORG="#F97316"
+BLU_RGB="79,70,229"  # primary accent as r,g,b for translucent fills/shadows
 def _rgb(h): h=h.lstrip('#'); return f"{int(h[0:2],16)},{int(h[2:4],16)},{int(h[4:6],16)}"
 GR=_rgb(G); RR=_rgb(R)  # "r,g,b" strings for chart fills, kept in sync with the theme
 CBASE=dict(paper_bgcolor=CBG,plot_bgcolor=CBG,font=dict(family="Inter,sans-serif",color=MUT,size=11),
@@ -44,16 +46,19 @@ CBASE=dict(paper_bgcolor=CBG,plot_bgcolor=CBG,font=dict(family="Inter,sans-serif
            hoverlabel=dict(bgcolor=SFC,bordercolor=BDR,font=dict(color=TXT,size=12)))
 LEG_H=dict(orientation="h",y=1.03,x=0,bgcolor="rgba(0,0,0,0)",font=dict(size=11,color=MUT))
 LEG_V=dict(bgcolor="rgba(0,0,0,0)",font=dict(size=11,color=MUT))
-MOD_C={"technical":BLU,"fundamental":G,"news":GLD,"psychology":PRP,"historical":ORG,"lunar":CYN}
+MOD_C={"technical":BLU,"fundamental":TEAL,"news":GLD,"psychology":PRP,"historical":ORG,"lunar":CYN}
 MOD_I={"technical":"📈","fundamental":"📊","news":"📰","psychology":"🧠","historical":"📅","lunar":"🌙"}
 MOD_D={"technical":.25,"fundamental":.25,"news":.20,"psychology":.15,"historical":.10,"lunar":.05}
+# Plain-language names shown in the UI instead of the internal keys (avoids jargon)
+MOD_NAME={"technical":"Price & Trend","fundamental":"Company Health","news":"News Mood",
+          "psychology":"Market Mood","historical":"Seasonal Patterns","lunar":"Moon Cycle"}
 MOD_DESC={
-    "technical":   "Price chart signals: moving averages, RSI momentum, MACD crossovers, Bollinger Bands",
-    "fundamental": "Business health: revenue growth, P/E ratio, debt load, analyst targets, return on equity",
-    "news":        "Recent headlines scored positive/negative using AI sentiment analysis",
-    "psychology":  "Market fear (VIX), short squeeze risk, insider ownership, crowd behavior, Wyckoff phase",
-    "historical":  "Calendar seasonality, mean reversion tendency, 200-day trend",
-    "lunar":       "Lunar cycle signal — new moons historically correlate with slightly higher returns",
+    "technical":   "How the price is moving — its trend, momentum, and whether it looks stretched too high or low",
+    "fundamental": "How the business is doing — sales growth, profitability, debt, and where analysts see the price going",
+    "news":        "Whether recent headlines about the company sound positive or negative",
+    "psychology":  "The mood of the market — fear vs. greed, crowd behavior, and signs of buying or selling pressure",
+    "historical":  "Calendar patterns — months and trends that have historically helped or hurt this kind of stock",
+    "lunar":       "A light-hearted seasonal factor: new moons have historically lined up with slightly higher returns",
 }
 TL={"1W":7,"1M":30,"3M":90,"6M":180,"1Y":365,"2Y":730,"5Y":1825,"MAX":9999}
 EXCL={"A","I","AI","AM","AN","BE","BY","DO","GO","HE","IF","IN","IS","IT","ME","MY","NO","OF","OK","ON","OR","SO","TO","UP","US","WE","AND","ARE","BUT","FOR","HAS","HOW","NOT","NOW","OUR","OUT","THE","WAS","WHO","WHY","WITH","YOU","ALL","BIG","GET","GOT","HAD","HIM","HIS","ITS","LET","LOW","MAY","NEW","OLD","ONE","OWN","PUT","SAY","SEE","SET","SHE","SIT","SIX","TEN","TOO","TWO","USE","WAY","WIN","WON","YES","YET","YOLO","FOMO","HODL","DD","WSB","IMO","IMHO","YTD","ATH","ATL","IPO","ETF","EPS","SEC","FDA","CEO","CFO","CTO","NYSE","NASDAQ","OTC","OTM","ITM","ATM","IV","VIX","SPY","QQQ","DJI","IWM","GLD","SLV","TLT","EUR","GBP","USD","BTC","ETH","GDP","CPI","PPI","FED","LOL","OMG","WTF","TBH","SMH","FUD","REKT","APE","APES","MOON","BULL","BEAR","CALLS","PUTS","GAIN","LOSS","PLAY","EDIT","TLDR","PSA","EOD","EOW","AH","PM","HIGH","CASH","SALE","GOOD","BAD","HUGE","HELP","NEED","WANT","MAKE","TAKE","LOOK","LONG","SHORT","HOLD","SELL","BUY","WAIT","NEXT","LAST","THIS","THAT","THEN","WHEN","JUST","LIKE","ALSO","EVEN","OVER","BACK","ONLY","SAME","SUCH","WELL","ELON","MUSK","TRUMP","BIDEN"}
@@ -122,14 +127,14 @@ html,body,[data-testid="stAppViewContainer"]{{font-family:'Inter',-apple-system,
 header[data-testid="stHeader"]{{background:transparent!important;height:0!important}}
 [data-baseweb="tab-list"]{{gap:3px;background:{CARD};border-radius:10px;padding:4px;border:1px solid {BDR};flex-wrap:wrap}}
 [data-baseweb="tab"]{{border-radius:7px!important;font-size:12px!important;font-weight:600!important;padding:6px 14px!important;color:{MUT}!important;background:transparent!important;transition:all .15s!important;white-space:nowrap!important}}
-[aria-selected="true"]{{background:{BLU}!important;color:#fff!important;box-shadow:0 2px 8px rgba(59,130,246,.4)!important}}
+[aria-selected="true"]{{background:{BLU}!important;color:#fff!important;box-shadow:0 2px 8px rgba({BLU_RGB},.4)!important}}
 .stButton>button{{background:{CARD}!important;color:{TXT}!important;border:1px solid {BDR}!important;border-radius:8px!important;font-family:'Inter',sans-serif!important;font-size:13px!important;font-weight:600!important;padding:9px 16px!important;transition:border-color .12s,background .12s,box-shadow .12s!important}}
 .stButton>button:hover{{border-color:{BLU}!important;background:{SFC}!important;color:{TXT}!important;box-shadow:0 1px 6px rgba(0,0,0,.18)!important}}
 .stButton>button:focus{{box-shadow:none!important}}
 .stButton>button[kind="primary"]{{background:{BLU}!important;color:#fff!important;border:1px solid {BLU}!important;font-weight:700!important;letter-spacing:.01em!important}}
-.stButton>button[kind="primary"]:hover{{background:#2563EB!important;border-color:#2563EB!important;box-shadow:0 3px 12px rgba(59,130,246,.40)!important}}
+.stButton>button[kind="primary"]:hover{{background:#4338CA!important;border-color:#4338CA!important;box-shadow:0 3px 12px rgba({BLU_RGB},.40)!important}}
 .stTextInput input{{background:{CARD}!important;color:{TXT}!important;border:1px solid {BDR}!important;border-radius:8px!important;font-size:14px!important;font-weight:600!important}}
-.stTextInput input:focus{{border-color:{BLU}!important;box-shadow:0 0 0 2px rgba(59,130,246,.2)!important}}
+.stTextInput input:focus{{border-color:{BLU}!important;box-shadow:0 0 0 2px rgba({BLU_RGB},.2)!important}}
 [data-baseweb="select"]>div{{background:{CARD}!important;border:1px solid {BDR}!important;border-radius:8px!important;min-height:46px!important;font-size:14px!important;font-weight:600!important}}
 [data-baseweb="select"]>div:hover{{border-color:{BLU}!important}}
 [data-baseweb="popover"] [role="option"]{{font-size:14px!important}}
@@ -147,7 +152,12 @@ hr{{border-color:{BDR}!important;margin:14px 0!important}}
 .reddit-card{{background:{CARD};border:1px solid {BDR};border-radius:10px;padding:12px 16px;margin-bottom:8px}}
 .fund-row{{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:6px;margin-bottom:2px}}
 .top-bar{{background:{SFC};border-bottom:1px solid {BDR};padding:8px 16px;display:flex;align-items:center;gap:20px;font-size:13px;flex-wrap:wrap}}
-.expl{{background:{'rgba(59,130,246,.08)' if DARK else '#EFF6FF'};border:1px solid {'rgba(59,130,246,.2)' if DARK else '#BFDBFE'};border-radius:8px;padding:12px 16px;font-size:12px;color:{'#93C5FD' if DARK else '#1D4ED8'};line-height:1.6;margin-top:8px}}
+.expl{{background:{f'rgba({BLU_RGB},.10)' if DARK else '#EEF2FF'};border:1px solid {f'rgba({BLU_RGB},.25)' if DARK else '#C7D2FE'};border-radius:8px;padding:12px 16px;font-size:12px;color:{'#A5B4FC' if DARK else '#4338CA'};line-height:1.6;margin-top:8px}}
+.seclabel{{font-size:11px;font-weight:800;letter-spacing:.14em;color:{MUT};text-transform:uppercase;margin:22px 0 2px;display:flex;align-items:center;gap:8px}}
+.seclabel::before{{content:'';width:3px;height:14px;background:{BLU};border-radius:2px;display:inline-block}}
+.secsub{{font-size:12px;color:{MUT};margin:0 0 10px;line-height:1.5}}
+.stDownloadButton>button{{background:{CARD}!important;color:{TXT}!important;border:1px solid {BDR}!important;border-radius:8px!important;font-weight:600!important}}
+.stDownloadButton>button:hover{{border-color:{BLU}!important}}
 ::-webkit-scrollbar{{width:5px;height:5px}}::-webkit-scrollbar-track{{background:{BG}}}::-webkit-scrollbar-thumb{{background:{BDR};border-radius:3px}}
 @media(max-width:768px){{.block-container{{padding:0.5rem!important}}[data-testid="stHorizontalBlock"]{{flex-direction:column!important}}[data-testid="stHorizontalBlock"]>div{{width:100%!important;min-width:100%!important}}}}
 </style>""")
@@ -226,16 +236,16 @@ def market_theme(mkt):
     """Turn the index snapshot into a one-line 'what's happening' read."""
     sp=mkt.get("S&P 500",{}).get("chg") or 0.; ndq=mkt.get("Nasdaq",{}).get("chg") or 0.
     vix=mkt.get("VIX",{}).get("val") or 18.; avg=(sp+ndq)/2
-    if vix>30:    return ("Risk-Off — Fear Dominates",  f"Volatility is spiking (VIX {vix:.0f}). Investors are defensive and sharp swings are likely.",R)
-    if avg>=.4 and vix<18: return ("Risk-On Rally",     f"Broad strength with calm volatility (VIX {vix:.0f}). Bulls are firmly in control.",G)
-    if avg>=.15:  return ("Cautiously Bullish",         f"Indices grinding higher — S&P {sp:+.1f}%, Nasdaq {ndq:+.1f}%, VIX {vix:.0f}.",G)
-    if avg<=-.4:  return ("Risk-Off Pullback",          f"Broad selling — S&P {sp:+.1f}%, Nasdaq {ndq:+.1f}%. Watch key support levels.",R)
-    if avg<=-.15: return ("Cautiously Bearish",         f"Mild weakness across indices — S&P {sp:+.1f}%, VIX {vix:.0f}.",R)
-    return ("Mixed / Range-Bound", f"No clear direction — S&P {sp:+.1f}%, Nasdaq {ndq:+.1f}%, VIX {vix:.0f}.",GLD)
+    if vix>30:    return ("Nervous market",  f"Big swings are likely today (fear gauge {vix:.0f}). Investors are playing defense.",R)
+    if avg>=.4 and vix<18: return ("Strong, calm day",     f"Broad gains with low fear (gauge {vix:.0f}). Buyers are in control.",G)
+    if avg>=.15:  return ("Leaning up",         f"Markets are grinding higher — S&P {sp:+.1f}%, Nasdaq {ndq:+.1f}%.",G)
+    if avg<=-.4:  return ("Broad sell-off",          f"Widespread selling — S&P {sp:+.1f}%, Nasdaq {ndq:+.1f}%. Watch your levels.",R)
+    if avg<=-.15: return ("Leaning down",         f"Mild weakness across the board — S&P {sp:+.1f}%, fear gauge {vix:.0f}.",R)
+    return ("Quiet / no clear direction", f"Markets are flat today — S&P {sp:+.1f}%, Nasdaq {ndq:+.1f}%.",GLD)
 
 def strong_reasons(r,thresh=.45,limit=4):
     """Surface the standout single-factor reasons to buy or sell."""
-    names={"technical":"Technical","fundamental":"Fundamental","lunar":"Lunar","news":"News","psychology":"Psychology","historical":"Seasonal"}
+    names=MOD_NAME
     out=[]
     for k in ["technical","fundamental","lunar","news","psychology","historical"]:
         mod=r["modules"].get(k,{}); s=float(mod.get("score",0))
@@ -276,26 +286,26 @@ class TechAnalyzer:
         r=df.iloc[-1]; p=r["Close"]; sigs={}; sc_=[]
         s50,s200=r.get("SMA50",np.nan),r.get("SMA200",np.nan)
         if not any(np.isnan(x) for x in [s50,s200]):
-            if s50>s200: sigs["Golden Cross (50/200 MA)"]=("Bullish",0.80); sc_.append(0.80)
-            else:        sigs["Death Cross (50/200 MA)"]=("Bearish",-0.80); sc_.append(-0.80)
+            if s50>s200: sigs["Trend is up (short-term average above long-term)"]=("Positive",0.80); sc_.append(0.80)
+            else:        sigs["Trend is down (short-term average below long-term)"]=("Negative",-0.80); sc_.append(-0.80)
         above=sum(1 for k in ["SMA20","SMA50","SMA200"] if k in r and not np.isnan(r[k]) and p>r[k])
-        mas=clamp((above/3)*2-1); sigs[f"Price above {above}/3 moving averages"]=("Bullish" if mas>0 else "Bearish",mas); sc_.append(mas)
+        mas=clamp((above/3)*2-1); sigs[f"Price is above {above} of 3 key averages"]=("Positive" if mas>0 else "Negative",mas); sc_.append(mas)
         rsi=float(r.get("RSI",50)); rsi=50 if np.isnan(rsi) else rsi
-        if rsi<30:   rs=0.9;               sigs[f"RSI Oversold ({rsi:.0f}) — bounce potential"]=("Bullish",rs)
-        elif rsi>70: rs=-0.9;              sigs[f"RSI Overbought ({rsi:.0f}) — may pull back"]=("Bearish",rs)
-        else:        rs=clamp((50-rsi)/50*.4); sigs[f"RSI Neutral ({rsi:.0f})"]=("Neutral",rs)
+        if rsi<30:   rs=0.9;               sigs[f"Looks oversold ({rsi:.0f}/100) — could bounce"]=("Positive",rs)
+        elif rsi>70: rs=-0.9;              sigs[f"Looks overbought ({rsi:.0f}/100) — could pull back"]=("Negative",rs)
+        else:        rs=clamp((50-rsi)/50*.4); sigs[f"Momentum is balanced ({rsi:.0f}/100)"]=("Neutral",rs)
         sc_.append(rs)
         macd,macds,macdh=r.get("MACD",0),r.get("MACDs",0),r.get("MACDh",0)
         if not any(np.isnan(x) for x in [macd,macds,macdh]):
             ms=clamp(abs(macdh)/(abs(macd)+1e-9))*(1 if macd>macds else -1)
-            sigs["MACD "+("Bullish" if ms>0 else "Bearish")+" Crossover"]=("Bullish" if ms>0 else "Bearish",ms); sc_.append(ms)
+            sigs["Momentum turning "+("up" if ms>0 else "down")]=("Positive" if ms>0 else "Negative",ms); sc_.append(ms)
         bbp=float(r.get("BBpct",0.5)); bbp=0.5 if np.isnan(bbp) else bbp
-        if bbp<.2:   bs=0.7;               sigs["Bollinger — Near Lower Band (oversold)"]=("Bullish",bs)
-        elif bbp>.8: bs=-0.7;              sigs["Bollinger — Near Upper Band (overbought)"]=("Bearish",bs)
-        else:        bs=clamp((.5-bbp)*1.4); sigs[f"Bollinger Mid-Zone ({bbp:.0%})"]=("Neutral",bs)
+        if bbp<.2:   bs=0.7;               sigs["Price stretched below its usual range"]=("Positive",bs)
+        elif bbp>.8: bs=-0.7;              sigs["Price stretched above its usual range"]=("Negative",bs)
+        else:        bs=clamp((.5-bbp)*1.4); sigs["Price within its usual range"]=("Neutral",bs)
         sc_.append(bs)
         moms=[clamp(r.get(f"M{l}",0)*5) for l in ["1m","3m","6m"] if not np.isnan(r.get(f"M{l}",np.nan))]
-        if moms: ms2=clamp(np.mean(moms)); sigs["Price Momentum (1/3/6 months)"]=("Bullish" if ms2>0 else "Bearish",ms2); sc_.append(ms2)
+        if moms: ms2=clamp(np.mean(moms)); sigs["Recent momentum (1–6 months)"]=("Positive" if ms2>0 else "Negative",ms2); sc_.append(ms2)
         return {"score":clamp(np.mean(sc_)) if sc_ else 0.,"signals":sigs,"rsi":rsi,"bbp":bbp}
 
 class NewsSentiment:
@@ -310,7 +320,7 @@ class NewsSentiment:
         for i in self.items:
             t=news_title(i)
             if not t: continue
-            s=self._s(t); sc.append(s); hl.append({"title":t,"score":round(s,3),"sent":"Bullish" if s>.1 else "Bearish" if s<-.1 else "Neutral"})
+            s=self._s(t); sc.append(s); hl.append({"title":t,"score":round(s,2),"sent":"Positive" if s>.1 else "Negative" if s<-.1 else "Neutral"})
         if not sc: return {"score":0.,"headlines":[],"bull":0,"bear":0,"total":0}
         ws=clamp(float(np.average(sc,weights=np.linspace(1,.4,len(sc)))))
         return {"score":ws,"headlines":hl[:12],"bull":sum(1 for s in sc if s>.1),"bear":sum(1 for s in sc if s<-.1),"total":len(sc)}
@@ -325,33 +335,33 @@ class LunarAnalyzer:
             dn=float(ephem.next_new_moon(d)-d); df_=float(ephem.next_full_moon(d)-d)
             prox=(.25*(1-dn/4) if dn<df_ and dn<4 else -.15*(1-df_/4) if df_<dn and df_<4 else 0)
             return {"score":clamp(bs+prox),"phase":name,"illum":f"{p*100:.0f}%","d_new":round(dn,1),"d_full":round(df_,1),
-                    "signals":{f"Lunar Phase: {name}":(f"{p*100:.0f}% illuminated",clamp(bs)),"New Moon proximity":(f"{round(dn,1)}d away",clamp(.25*(1-dn/7)))}}
+                    "signals":{f"Moon phase: {name}":(f"{p*100:.0f}% lit",clamp(bs)),"Days to next new moon":(f"about {round(dn,1)} days away",clamp(.25*(1-dn/7)))}}
         except: return {"score":0.,"phase":"Unknown","illum":"?","d_new":0,"d_full":0,"signals":{}}
 
 class PsychAnalyzer:
     def __init__(self,vix,fund,df): self.vix=vix; self.f=fund; self.df=df
     def score(self):
         v=self.vix; vs=(.90 if v>40 else .50 if v>30 else .00 if v>20 else -.30 if v>15 else -.65)
-        vl=(f"VIX {v:.1f} — Extreme fear, contrarian buy" if v>30 else f"VIX {v:.1f} — Complacency, caution" if v<15 else f"VIX {v:.1f} — Normal range")
+        vl=(f"High fear right now (gauge {v:.0f}) — often a buying opportunity" if v>30 else f"Very calm / complacent (gauge {v:.0f}) — stay cautious" if v<15 else f"Normal mood (fear gauge {v:.0f})")
         sr=self.f.get("short_ratio"); ss=(.70 if sr and sr>10 else .25 if sr and sr>5 else -.10)
-        sl=(f"Short ratio {sr:.1f}d — squeeze possible" if sr and sr>5 else f"Short ratio {sr:.1f}d — light" if sr else "Short data unavailable")
+        sl=(f"Heavily bet against ({sr:.1f} days to cover) — could spike if it rises" if sr and sr>5 else f"Lightly bet against ({sr:.1f} days)" if sr else "No short-interest data")
         io=self.f.get("insider_ownership"); is_=(.60 if io and io>.20 else .20 if io and io>.05 else -.20)
-        il=(f"Insiders own {io*100:.1f}% — aligned" if io else "Insider data unavailable")
+        il=(f"Insiders own {io*100:.1f}% — interests aligned with shareholders" if io else "No insider-ownership data")
         try:
             rets=self.df["Close"].pct_change().dropna(); y=self.df["Close"].iloc[-30:].values; x=np.arange(len(y))
             slope,_,rr,_,_=stats.linregress(x,y); rv=rets.rolling(20).std().iloc[-1]*np.sqrt(252)
-            hs=clamp(np.sign(slope)*rr**2*max(0.,1.-rv)); hl=("Crowd chasing uptrend" if hs>.3 else "Crowd panic-selling" if hs<-.3 else "No clear crowd direction")
-        except: hs=0.; hl="Insufficient data"
+            hs=clamp(np.sign(slope)*rr**2*max(0.,1.-rv)); hl=("Crowd is chasing the rise" if hs>.3 else "Crowd is selling in fear" if hs<-.3 else "No clear crowd direction")
+        except: hs=0.; hl="Not enough data"
         try:
             c=self.df["Close"]; hi52=c.rolling(252).max().iloc[-1]; lo52=c.rolling(252).min().iloc[-1]
             pos=(c.iloc[-1]-lo52)/(hi52-lo52+1e-9); vs2=self.df["Volume"].iloc[-20:].mean()/(self.df["Volume"].iloc[-60:-20].mean()+1e-9)
-            if pos<.25 and vs2>1.1: wy=.70; wl=f"Accumulation — smart money buying ({pos:.0%})"
-            elif pos<.25:           wy=.35; wl=f"Near 52w low — potential bottom ({pos:.0%})"
-            elif pos<.75:           wy=.15; wl=f"Mid-range markup phase ({pos:.0%})"
-            elif vs2>1.2:           wy=-.70; wl=f"Distribution — selling on strength ({pos:.0%})"
-            else:                   wy=-.30; wl=f"Extended near 52w highs ({pos:.0%})"
-        except: wy=0.; wl="Insufficient data"
-        sigs={"Fear & Greed (VIX)":(vl,vs),"Short Squeeze Risk":(sl,ss),"Insider Ownership":(il,is_),"Crowd Behavior":(hl,hs),"Wyckoff Market Phase":(wl,wy)}
+            if pos<.25 and vs2>1.1: wy=.70; wl=f"Quiet buying near the lows ({pos:.0%} of 1-yr range)"
+            elif pos<.25:           wy=.35; wl=f"Near its 1-year low — possible bottom ({pos:.0%} of range)"
+            elif pos<.75:           wy=.15; wl=f"Trading in the middle of its 1-year range ({pos:.0%})"
+            elif vs2>1.2:           wy=-.70; wl=f"Heavy selling into strength ({pos:.0%} of range)"
+            else:                   wy=-.30; wl=f"Near its 1-year high — stretched ({pos:.0%} of range)"
+        except: wy=0.; wl="Not enough data"
+        sigs={"Fear vs. greed":(vl,vs),"Bets against the stock":(sl,ss),"Insider ownership":(il,is_),"Crowd behavior":(hl,hs),"Buying vs. selling pressure":(wl,wy)}
         return {"score":clamp(float(np.average([vs,ss,is_,hs,wy],weights=[.30,.15,.15,.20,.20]))),"signals":sigs}
 
 class FundAnalyzer:
@@ -361,15 +371,15 @@ class FundAnalyzer:
         pe,fpe=f.get("pe_ratio") or 0,f.get("forward_pe") or 0
         if pe>0 and fpe>0:
             s=clamp((pe-fpe)/pe*5+(-0.4 if fpe>35 else 0.4 if fpe<15 else 0))
-            sigs["P/E Ratio (Trailing to Forward)"]=(f"PE={pe:.1f} to Fwd={fpe:.1f} {'(expensive)' if fpe>35 else '(cheap)' if fpe<15 else ''}",s); sc.append((s,.20))
+            sigs["Valuation (price vs. earnings)"]=(f"Paying {fpe:.1f}× next year's earnings {'(pricey)' if fpe>35 else '(reasonable)' if fpe<15 else ''}",s); sc.append((s,.20))
         rg,eg=f.get("revenue_growth") or 0,f.get("earnings_growth") or 0; gs=clamp((rg+eg)*3)
-        sigs["Revenue & Earnings Growth"]=(f"Revenue {rg*100:+.1f}%  Earnings {eg*100:+.1f}%",gs); sc.append((gs,.25))
+        sigs["Sales & profit growth"]=(f"Sales {rg*100:+.1f}%, profit {eg*100:+.1f}% vs. a year ago",gs); sc.append((gs,.25))
         dte=f.get("debt_to_equity") or 0; ds=(.7 if dte<.5 else .2 if dte<1.5 else -.3 if dte<3 else -.7)
-        sigs["Debt / Equity"]=(f"D/E={dte:.2f} {'low debt' if dte<.5 else 'high debt' if dte>3 else ''}",ds); sc.append((ds,.15))
+        sigs["Debt load"]=(f"{'Low debt' if dte<.5 else 'High debt' if dte>3 else 'Moderate debt'} ({dte:.2f}× equity)",ds); sc.append((ds,.15))
         tgt,curr=f.get("analyst_target"),f.get("current_price")
         if tgt and curr and curr>0:
-            up=(tgt-curr)/curr; as_=clamp(up*4); sigs["Analyst Price Target"]=(f"${curr:.2f} to ${tgt:.2f} ({up*100:+.1f}%)",as_); sc.append((as_,.25))
-        roe=f.get("roe") or 0; rs=clamp(roe*5); sigs["Return on Equity"]=(f"{roe*100:.1f}%",rs); sc.append((rs,.15))
+            up=(tgt-curr)/curr; as_=clamp(up*4); sigs["Analyst price target"]=(f"Analysts see ${tgt:,.2f} ({up*100:+.1f}% from today)",as_); sc.append((as_,.25))
+        roe=f.get("roe") or 0; rs=clamp(roe*5); sigs["Profitability (return on equity)"]=(f"Earns {roe*100:.1f}% on shareholder money",rs); sc.append((rs,.15))
         if not sc: return {"score":0.,"signals":{}}
         tw=sum(w for _,w in sc); return {"score":clamp(sum(s*w for s,w in sc)/tw),"signals":sigs}
 
@@ -389,9 +399,9 @@ class HistAnalyzer:
             x=np.arange(len(c.iloc[-200:])); sl,_,rr,_,_=stats.linregress(x,c.iloc[-200:].values); trd=clamp(sl/(c.mean()+1e-9)*600)
         except: trd=0.
         month=self.now.strftime('%B')
-        sigs={f"Seasonality ({month})":(f"{'Historically strong' if ms>.1 else 'Historically weak' if ms<-.1 else 'Neutral'} month",sea),
-              "Mean Reversion":("Distance from 60-day average",rev),"Momentum Persistence":("Recent momentum direction",acr),
-              "200-Day Trend":(f"{'Uptrend' if trd>0 else 'Downtrend'} over 200 days",trd)}
+        sigs={f"Time of year ({month})":(f"{'Historically a strong' if ms>.1 else 'Historically a weak' if ms<-.1 else 'A neutral'} month for stocks",sea),
+              "Distance from recent average":("How far price sits from its 3-month average",rev),"Momentum staying power":("Whether the recent move tends to continue",acr),
+              "Long-term trend":(f"{'Rising' if trd>0 else 'Falling'} over the past ~10 months",trd)}
         return {"score":clamp(float(np.average([sea,rev,acr,trd],weights=[.20,.25,.25,.30]))),"signals":sigs}
 
 # ── Data Fetching ──────────────────────────────────────────
@@ -483,25 +493,32 @@ def fetch_earnings_data(ticker:str):
     return result
 
 @st.cache_data(ttl=600,show_spinner=False)
-def fetch_reddit_trending():
-    headers={"User-Agent":"StockOracle/3.0 (educational; python-requests)"}
-    found={}; posts_by={}
-    for sub in ["wallstreetbets","stocks","investing","options","SecurityAnalysis"]:
-        try:
-            resp=requests.get(f"https://www.reddit.com/r/{sub}/hot.json?limit=50",headers=headers,timeout=5)
-            if resp.status_code!=200: continue
-            for post in resp.json()["data"]["children"]:
-                pd_=post["data"]; title=pd_.get("title",""); score=pd_.get("score",0); cmts=pd_.get("num_comments",0)
-                for tk in set(re.findall(r'\b([A-Z]{2,5})\b',f"{title} {pd_.get('selftext','')}")):
-                    if tk in EXCL: continue
-                    if tk not in found: found[tk]={"mentions":0,"score":0,"subs":set()}; posts_by[tk]=[]
-                    found[tk]["mentions"]+=1; found[tk]["score"]+=score+cmts*2; found[tk]["subs"].add(sub)
-                    if len(posts_by[tk])<3: posts_by[tk].append({"title":title[:90],"sub":sub,"score":score,"url":f"https://reddit.com{pd_.get('permalink','')}"})
-        except: continue
-    out=[]
-    for tk,info in sorted(found.items(),key=lambda x:x[1]["score"],reverse=True)[:25]:
-        info["subs"]=list(info["subs"]); info["posts"]=posts_by.get(tk,[]); out.append((tk,info))
-    return out
+def fetch_social_trending():
+    """Most talked-about stocks right now. Primary source is StockTwits (a retail-investor
+    social network) whose 'trending' API works from cloud servers where Reddit is blocked.
+    Falls back to the day's biggest movers so the tab always shows something useful."""
+    # 1) StockTwits trending symbols
+    try:
+        resp=requests.get("https://api.stocktwits.com/api/2/trending/symbols.json",
+                          headers={"User-Agent":"Mozilla/5.0 (StockOracle)"},timeout=6)
+        if resp.status_code==200:
+            syms=resp.json().get("symbols",[])
+            items=[]
+            for s in syms:
+                tk=str(s.get("symbol","")).replace(".","-").upper()
+                if not tk or any(c in tk for c in (" ","/","^","=")): continue
+                items.append({"ticker":tk,"name":str(s.get("title","") or TICKER_NAMES.get(tk,tk))[:40],
+                              "watchers":int(s.get("watchlist_count",0) or 0)})
+                if len(items)>=20: break
+            if items: return {"source":"StockTwits","items":items}
+    except: pass
+    # 2) Fallback: biggest movers today (always works via yfinance)
+    try:
+        tl=fetch_top_lists(); movers=(tl.get("up",[])+tl.get("down",[]))
+        items=[{"ticker":m["ticker"],"name":m.get("name",m["ticker"]),"watchers":0,"chg":m.get("chg",0)} for m in movers][:16]
+        if items: return {"source":"Movers","items":items}
+    except: pass
+    return {"source":"none","items":[]}
 
 @st.cache_data(ttl=900,show_spinner=False)
 def fetch_market_news(n=4):
@@ -714,11 +731,11 @@ def gauge_chart(score,vl,vc_):
 
 def radar_chart(mods):
     try:
-        cats=[MOD_I[k]+" "+k.capitalize() for k in MOD_C]; vals=[mods[k]["score"] for k in MOD_C]; cats.append(cats[0]); vals.append(vals[0])
+        cats=[MOD_I[k]+" "+MOD_NAME.get(k,k) for k in MOD_C]; vals=[mods[k]["score"] for k in MOD_C]; cats.append(cats[0]); vals.append(vals[0])
         pos=[max(0,v) for v in vals]; neg=[abs(min(0,v)) for v in vals]
         fig=go.Figure()
-        fig.add_trace(go.Scatterpolar(r=pos,theta=cats,fill="toself",name="Bullish",fillcolor=f"rgba({GR},.18)",line=dict(color=G,width=2)))
-        fig.add_trace(go.Scatterpolar(r=neg,theta=cats,fill="toself",name="Bearish",fillcolor=f"rgba({RR},.12)",line=dict(color=R,width=2)))
+        fig.add_trace(go.Scatterpolar(r=pos,theta=cats,fill="toself",name="Positive",fillcolor=f"rgba({GR},.18)",line=dict(color=G,width=2)))
+        fig.add_trace(go.Scatterpolar(r=neg,theta=cats,fill="toself",name="Negative",fillcolor=f"rgba({RR},.12)",line=dict(color=R,width=2)))
         fig.update_layout(polar=dict(bgcolor=CBG,radialaxis=dict(visible=True,range=[0,1],gridcolor=CGRID,tickfont=dict(color=MUT,size=9)),angularaxis=dict(gridcolor=CGRID,tickfont=dict(color=MUT,size=11))),paper_bgcolor=CBG,font_color=MUT,legend=LEG_V,height=300,margin=dict(l=48,r=48,t=24,b=24))
         return fig
     except: return None
@@ -726,7 +743,7 @@ def radar_chart(mods):
 def module_bars(mods,weights):
     try:
         keys=list(weights.keys()); vals=[mods[k]["score"] for k in keys]; colors=[MOD_C[k] for k in keys]
-        fig=go.Figure(go.Bar(x=vals,y=[f"{MOD_I[k]} {k.capitalize()}" for k in keys],orientation="h",marker_color=colors,opacity=.88,text=[f"{v:+.2f}" for v in vals],textposition="outside",textfont=dict(color=TXT,size=11)))
+        fig=go.Figure(go.Bar(x=vals,y=[f"{MOD_I[k]} {MOD_NAME.get(k,k)}" for k in keys],orientation="h",marker_color=colors,opacity=.88,text=[f"{v:+.2f}" for v in vals],textposition="outside",textfont=dict(color=TXT,size=11)))
         fig.add_vline(x=0,line_color=MUT,line_width=1)
         fig.update_layout(**CBASE,height=260,xaxis=dict(range=[-1.15,1.15],gridcolor=CGRID,showgrid=True),yaxis=dict(gridcolor=CGRID,showgrid=False))
         return fig
@@ -867,7 +884,7 @@ def compare_chart(dfa,dfb,ta_,tb_,rng):
 
 def compare_bars(ma,mb,ta_,tb_):
     try:
-        keys=list(MOD_C.keys()); labels=[f"{MOD_I[k]} {k.capitalize()}" for k in keys]
+        keys=list(MOD_C.keys()); labels=[f"{MOD_I[k]} {MOD_NAME.get(k,k)}" for k in keys]
         fig=go.Figure()
         fig.add_trace(go.Bar(y=labels,x=[ma[k]["score"] for k in keys],name=ta_,orientation="h",marker_color=BLU,opacity=.85))
         fig.add_trace(go.Bar(y=labels,x=[mb[k]["score"] for k in keys],name=tb_,orientation="h",marker_color=GLD,opacity=.85))
@@ -882,7 +899,7 @@ def build_report_html(r):
     q=r["quote"]; f=r["fund"]; comp=r["composite"]; vl,vc_,_=verdict(comp)
     chg=q["chg"]; cc_=G if chg>=0 else R
     mod_rows="".join(
-        f'<tr><td style="padding:6px 10px">{MOD_I[k]} {k.capitalize()}</td>'
+        f'<tr><td style="padding:6px 10px">{MOD_I[k]} {MOD_NAME.get(k,k)}</td>'
         f'<td style="padding:6px 10px;color:{sc(r["modules"][k]["score"])};font-weight:700;text-align:right">{r["modules"][k]["score"]:+.2f}</td>'
         f'<td style="padding:6px 10px;text-align:right;color:#64748B">{r["weights"][k]*100:.0f}%</td></tr>'
         for k in MOD_C)
@@ -956,7 +973,7 @@ with st.sidebar:
     st.html(f"<div style='font-size:10px;font-weight:700;color:{MUT};letter-spacing:.1em;margin-bottom:2px'>SIGNAL WEIGHTS</div>")
     st.html(f"<div style='font-size:10px;color:{MUT};margin-bottom:8px'>Adjust how much each factor counts</div>")
     weights={}
-    for k in MOD_C: weights[k]=st.slider(f"{MOD_I[k]} {k.capitalize()}",0.,1.,MOD_D[k],.05,key=f"w_{k}")
+    for k in MOD_C: weights[k]=st.slider(f"{MOD_I[k]} {MOD_NAME.get(k,k)}",0.,1.,MOD_D[k],.05,key=f"w_{k}")
     if st.button("Reset weights",width='stretch'):
         for k in MOD_D: st.session_state[f"w_{k}"]=MOD_D[k]
         st.rerun()
@@ -981,6 +998,21 @@ if ticker_in and st.session_state.get("last_sig")!=_sig:
             st.session_state.result=None; st.error(f"Could not analyze '{ticker_in}': {e}")
 
 r=st.session_state.result
+
+# ── Prominent search bar (always visible at the top of the page) ──
+st.html(f"<div style='font-size:23px;font-weight:900;letter-spacing:-.03em;margin:2px 0 6px'>◈ Stock <span style='color:{BLU}'>Oracle</span> <span style='font-size:13px;font-weight:600;color:{MUT};letter-spacing:0'>— search any US stock or ETF below</span></div>")
+def _main_search_cb():
+    v=st.session_state.get("main_search")
+    if v: st.session_state["pending_ticker"]=v
+_msuni=sorted(set(ALLSYM)|{ticker_in})
+st.session_state["main_search"]=ticker_in   # keep the box in sync with the current stock
+sc1,sc2=st.columns([3,1])
+with sc1:
+    st.selectbox("Search any stock",_msuni,key="main_search",on_change=_main_search_cb,
+        format_func=lambda s:f"{s} · {ALLSYM[s]}" if s in ALLSYM else s,
+        label_visibility="collapsed",placeholder="Type a symbol or company name — e.g. AAPL or Apple")
+with sc2:
+    st.html(f"<div style='font-size:11px;color:{MUT};padding-top:12px;text-align:right'>{len(ALLSYM):,} stocks &amp; ETFs</div>")
 
 if r is not None:
     q_top=r["quote"]; p_top=q_top["price"]; chg_top=q_top["chg"]
@@ -1016,20 +1048,28 @@ st.html(f"""<div class="card" style="border-left:5px solid {mt_col};margin-botto
   <div style="font-size:12.5px;color:{MUT};line-height:1.55;margin-top:4px">{mt_detail}</div>
   {news_html}
 </div>""")
+st.html(f"<div class='seclabel'>Market snapshot</div><div class='secsub'>How the major indexes and key prices are doing today</div>")
 for col_,(name,data) in zip(st.columns(len(show_mkt)),show_mkt):
     with col_:
         val=data["val"]; chg=data["chg"] or 0; cc=G if chg>=0 else R; sfx="%" if "Yield" in name else ""
         st.html(f"""<div class="card-sm" style="margin-bottom:8px"><div style="font-size:9px;color:{MUT};letter-spacing:.08em;font-weight:700">{name.upper()}</div><div style="font-size:17px;font-weight:800;color:{TXT};margin:2px 0">{val:.2f}{sfx}</div><div style="font-size:11px;color:{cc};font-weight:600">{'▲' if chg>=0 else '▼'} {abs(chg):.2f}%</div></div>""")
 
-# ── Top bar: Stock Picks / Potential Picks / Movers ──
+# ── Ideas to explore: opportunities, quality stocks, and movers ──
 tl=fetch_top_lists()
 if any(tl.get(k) for k in ("potential","picks","up","down")):
-    pc1,pc2=st.columns([1.1,3])
-    with pc1: st.html(f"<div class='sec-h' style='margin-top:12px'>Picks &amp; Movers</div>")
-    with pc2:
-        mode=st.radio("picks",["⭐ Potential Picks","Stock Picks","Gainers","Losers"],horizontal=True,label_visibility="collapsed",key="picks_mode")
-    keymap={"⭐ Potential Picks":"potential","Stock Picks":"picks","Gainers":"up","Losers":"down"}
-    items=tl.get(keymap.get(mode,"potential"),[])[:6]; show_score=(mode=="⭐ Potential Picks")
+    keymap={"Top Opportunities":"potential","Quality Stocks":"picks","Today's Gainers":"up","Today's Losers":"down"}
+    submap={"Top Opportunities":"Stocks with the strongest momentum right now",
+            "Quality Stocks":"A hand-picked list of large, established companies",
+            "Today's Gainers":"Biggest price gains so far today","Today's Losers":"Biggest price drops so far today"}
+    st.html(f"<div class='seclabel'>Ideas to explore</div>")
+    seg=st.columns(len(keymap))
+    for c,label in zip(seg,keymap):
+        active=st.session_state.picks_mode==label
+        if c.button(label,key=f"pm_{label}",width='stretch',type="primary" if active else "secondary"):
+            st.session_state.picks_mode=label; st.rerun()
+    mode=st.session_state.picks_mode if st.session_state.picks_mode in keymap else "Top Opportunities"
+    st.html(f"<div class='secsub'>{submap.get(mode,'')}</div>")
+    items=tl.get(keymap.get(mode,"potential"),[])[:6]; show_score=(mode=="Top Opportunities")
     if not items:
         st.html(f"<div style='color:{MUT};font-size:12px;padding:2px 0 10px'>No data right now — try ↻ Refresh data.</div>")
     else:
@@ -1047,7 +1087,7 @@ if any(tl.get(k) for k in ("potential","picks","up","down")):
                 if st.button("Analyze",key=f"pick_{m['ticker']}",width='stretch'): go_analyze(m["ticker"])
 
 st.html("<div style='height:6px'></div>")
-tab_mkt,tab_anal,tab_back,tab_watch,tab_cmp,tab_insider,tab_disc,tab_fund,tab_ctx=st.tabs(["🏠 Dashboard","🔬 Deep Analysis","📈 Backtest","⭐ Watchlist","⚖️ Compare","🏛️ Insider Activity","🔥 Social & Reddit","📊 Fundamentals","🌐 Market Context"])
+tab_mkt,tab_anal,tab_back,tab_watch,tab_cmp,tab_insider,tab_disc,tab_fund,tab_ctx=st.tabs(["🏠 Dashboard","🔬 Deep Analysis","📈 Backtest","⭐ Watchlist","⚖️ Compare","🏛️ Insider Activity","🔥 Trending","📊 Fundamentals","🌐 Market Context"])
 
 # ── Tab 1: Dashboard ───────────────────────────────────────
 with tab_mkt:
@@ -1075,7 +1115,7 @@ with tab_mkt:
                 mime="text/html",width='stretch',key="dl_report")
         reasons=strong_reasons(r)
         if reasons:
-            st.html(f"<div style='font-size:13px;font-weight:800;letter-spacing:.02em;margin:10px 0 8px;color:{TXT}'>Strongest Signals — Why Buy or Sell</div>")
+            st.html(f"<div class='seclabel'>Why this verdict</div><div class='secsub'>The signals pushing hardest toward buy or sell right now</div>")
             for col_,rc in zip(st.columns(len(reasons)),reasons):
                 dc=G if rc["dir"]=="BUY" else R; ic=MOD_I.get(rc["key"],"•")
                 with col_:
@@ -1086,6 +1126,7 @@ with tab_mkt:
                       <div style="font-size:11px;color:{MUT};margin-top:3px">{rc['detail']}</div>
                       <div style="font-size:11px;color:{dc};font-weight:800;margin-top:5px">Signal {rc['score']:+.2f}</div>
                     </div>""")
+        st.html(f"<div class='seclabel'>Price chart</div><div class='secsub'>Pick a time range below · add indicators from the sidebar</div>")
         tl_cols=st.columns(len(TL))
         for i,(lbl,_) in enumerate(TL.items()):
             with tl_cols[i]:
@@ -1102,7 +1143,7 @@ with tab_mkt:
 
 # ── Tab 2: Deep Analysis ───────────────────────────────────
 with tab_anal:
-    if r is None: st.info("Run an analysis first using the sidebar.")
+    if r is None: st.info("Search for a stock in the bar at the top of the page to begin.")
     else:
         left,right=st.columns([1.1,1.8])
         with left:
@@ -1117,18 +1158,18 @@ with tab_anal:
                     sig_html+=(f'<div class="sig"><span style="color:{col_};margin-right:6px">{ic}</span><span style="flex:1">{sn}</span><span style="color:{sv_c};font-weight:600;margin-left:8px">{sv_n:+.2f}</span></div>')
                 lunar_extra="" 
                 if key=="lunar": lunar_extra=(f'<div style="color:{CYN};font-size:11px;padding:8px 0">Moon: {mod.get("phase","?")} · {mod.get("illum","?")} lit · New moon in {mod.get("d_new","?")}d</div>')
-                st.html(f"""<div class="card" style="border-left:4px solid {col_}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:{col_};text-transform:uppercase">{MOD_I[key]} {key}</span><span style="color:{MUT};font-size:10px">{r['weights'][key]*100:.0f}% weight</span></div><div style="font-size:10px;color:{MUT};margin-bottom:8px;line-height:1.5">{MOD_DESC.get(key,'')}</div><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px"><span style="font-size:24px;font-weight:900;color:{vc2}">{ms:+.2f}</span><span class="pill" style="background:{vc2}22;color:{vc2}">{vl2}</span></div><div class="bar-track"><div class="bar-fill" style="width:{pct}%;background:{col_ if ms>=0 else R}"></div></div>{sig_html}{lunar_extra}</div>""")
+                st.html(f"""<div class="card" style="border-left:4px solid {col_}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:{col_};text-transform:uppercase">{MOD_I[key]} {MOD_NAME.get(key,key)}</span><span style="color:{MUT};font-size:10px">{r['weights'][key]*100:.0f}% weight</span></div><div style="font-size:10px;color:{MUT};margin-bottom:8px;line-height:1.5">{MOD_DESC.get(key,'')}</div><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px"><span style="font-size:24px;font-weight:900;color:{vc2}">{ms:+.2f}</span><span class="pill" style="background:{vc2}22;color:{vc2}">{vl2}</span></div><div class="bar-track"><div class="bar-fill" style="width:{pct}%;background:{col_ if ms>=0 else R}"></div></div>{sig_html}{lunar_extra}</div>""")
         with right:
             nd=r["modules"]["news"]; ns,nc_,_=verdict(nd["score"])
-            st.html(f"""<div class="card" style="border-left:4px solid {nc_};margin-bottom:16px"><div style="font-size:11px;color:{MUT};letter-spacing:.08em;margin-bottom:6px">NEWS SENTIMENT</div><div style="display:flex;align-items:center;gap:16px"><span style="font-size:28px;font-weight:900;color:{nc_}">{nd['score']:+.2f}</span><div><div style="font-weight:700;color:{nc_}">{ns}</div><div style="font-size:11px;color:{MUT}"><span style="color:{G}">▲{nd['bull']} bullish</span>&nbsp;<span style="color:{R}">▼{nd['bear']} bearish</span>&nbsp;{nd['total']} articles</div></div></div></div>""")
+            st.html(f"""<div class="card" style="border-left:4px solid {nc_};margin-bottom:16px"><div style="font-size:11px;color:{MUT};letter-spacing:.08em;margin-bottom:6px">NEWS MOOD</div><div style="display:flex;align-items:center;gap:16px"><span style="font-size:28px;font-weight:900;color:{nc_}">{nd['score']:+.2f}</span><div><div style="font-weight:700;color:{nc_}">{ns}</div><div style="font-size:11px;color:{MUT}"><span style="color:{G}">▲{nd['bull']} positive</span>&nbsp;<span style="color:{R}">▼{nd['bear']} negative</span>&nbsp;{nd['total']} headlines</div></div></div></div>""")
             for h in nd.get("headlines",[])[:10]:
-                col2=G if h["sent"]=="Bullish" else R if h["sent"]=="Bearish" else MUT
-                icon2="▲" if h["sent"]=="Bullish" else "▼" if h["sent"]=="Bearish" else "◆"
+                col2=G if h["sent"]=="Positive" else R if h["sent"]=="Negative" else MUT
+                icon2="▲" if h["sent"]=="Positive" else "▼" if h["sent"]=="Negative" else "◆"
                 st.html(f"""<div class="reddit-card"><div style="display:flex;gap:10px;align-items:flex-start"><span style="color:{col2};font-size:15px;font-weight:700;min-width:18px">{icon2}</span><span style="font-size:12px;color:{TXT};flex:1;line-height:1.5">{h['title'][:130]}</span><span style="color:{col2};font-weight:700;font-size:12px;min-width:40px;text-align:right">{h['score']:+.2f}</span></div></div>""")
 
 # ── Tab: Backtest ──────────────────────────────────────────
 with tab_back:
-    if r is None: st.info("Run an analysis first using the sidebar.")
+    if r is None: st.info("Search for a stock in the bar at the top of the page to begin.")
     else:
         st.html(f"""<div style="margin-bottom:14px"><div style="font-size:22px;font-weight:800">Signal Backtest — {r['ticker']}</div><div style="color:{MUT};font-size:13px">Would the technical signal have beaten buy-and-hold? Long the next day when the signal turns bullish, otherwise hold cash. No look-ahead.</div></div>""")
         with st.spinner("Running backtest…"): bt=backtest_signal(r["ticker"],period_sel)
@@ -1179,7 +1220,7 @@ with tab_watch:
 
 # ── Tab: Compare ───────────────────────────────────────────
 with tab_cmp:
-    if r is None: st.info("Run an analysis first using the sidebar.")
+    if r is None: st.info("Search for a stock in the bar at the top of the page to begin.")
     else:
         ta_=r["ticker"]
         st.html(f"""<div style="margin-bottom:10px"><div style="font-size:22px;font-weight:800">Compare</div><div style="color:{MUT};font-size:13px">Head-to-head: <strong>{ta_}</strong> vs a second stock — relative performance and module scores.</div></div>""")
@@ -1206,7 +1247,7 @@ with tab_cmp:
 
 # ── Tab 3: Insider ─────────────────────────────────────────
 with tab_insider:
-    if r is None: st.info("Run an analysis first using the sidebar.")
+    if r is None: st.info("Search for a stock in the bar at the top of the page to begin.")
     else:
         ticker_ins=r["ticker"]
         st.html(f"""<div style="margin-bottom:16px"><div style="font-size:22px;font-weight:800">Insider Activity — {ticker_ins}</div><div style="color:{MUT};font-size:13px">Form 4 SEC filings · Directors and officers · Last 90 days</div></div>""")
@@ -1214,7 +1255,7 @@ with tab_insider:
         transactions=ins.get("transactions",[]); net=ins.get("net_shares",0); source=ins.get("source","none")
         if transactions:
             net_c=G if net>0 else R if net<0 else MUT
-            net_lbl=("Net BUYING — insiders buying own stock (Bullish)" if net>0 else "Net SELLING — insiders selling (Bearish)" if net<0 else "Neutral activity")
+            net_lbl=("Insiders are net buyers — a good sign" if net>0 else "Insiders are net sellers — worth watching" if net<0 else "Roughly balanced insider activity")
             st.html(f"""<div class="card" style="border-left:5px solid {net_c};margin-bottom:16px"><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><span style="font-size:28px;color:{net_c}">{'▲' if net>0 else '▼' if net<0 else '─'}</span><div><div style="font-size:16px;font-weight:800;color:{net_c}">{net_lbl}</div><div style="font-size:12px;color:{MUT}">Net shares: <strong style="color:{net_c}">{net:+,}</strong> · Source: {source}</div></div></div></div>""")
             fig_ins=insider_chart(transactions)
             if fig_ins: st.plotly_chart(fig_ins,width='stretch',config={"displayModeBar":False})
@@ -1231,38 +1272,46 @@ with tab_insider:
             sec_url=f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={ticker_ins}&type=4&dateb=&owner=include&count=40"
             st.html(f'<div style="text-align:center;margin-top:8px;font-size:12px"><a href="{sec_url}" target="_blank" style="color:{BLU}">Check SEC EDGAR directly</a></div>')
 
-# ── Tab 4: Reddit ──────────────────────────────────────────
+# ── Tab: Trending (most talked-about stocks) ───────────────
 with tab_disc:
-    st.html(f"""<div style="margin-bottom:20px"><div style="font-size:22px;font-weight:800;margin-bottom:4px">What Reddit Is Talking About</div><div style="color:{MUT};font-size:13px">Live trending from r/wallstreetbets · r/stocks · r/investing · r/options · r/SecurityAnalysis</div></div>""")
-    with st.spinner("Fetching Reddit trending data…"): trending=fetch_reddit_trending()
-    if not trending: st.warning("Reddit data unavailable — check your internet or try again.")
+    with st.spinner("Loading trending stocks…"): trend=fetch_social_trending()
+    src=trend.get("source","none"); items=trend.get("items",[])
+    sub=("Most talked-about stocks on StockTwits right now" if src=="StockTwits"
+         else "StockTwits was unavailable — showing today's biggest movers instead" if src=="Movers"
+         else "Trending data is temporarily unavailable")
+    st.html(f"""<div class="seclabel">Trending now</div><div class="secsub">{sub}. Tap any stock to analyze it.</div>""")
+    if not items:
+        st.warning("Couldn't load trending stocks right now — try ↻ Refresh data in the sidebar.")
     else:
-        for col_,(tk,info) in zip(st.columns(3),trending[:3]):
+        # Top 3 as feature cards
+        for col_,it in zip(st.columns(3),items[:3]):
+            tk=it["ticker"]
             with col_:
                 q2=quick_quote(tk); p2=q2["price"]; chg2=q2["chg"]; cc2=G if chg2>=0 else R
-                subs_str=" · ".join(f"r/{s}" for s in info["subs"][:2])
-                posts_html="".join(f'<div style="font-size:10px;color:{MUT};padding:3px 0;border-bottom:1px solid {BDR}">{p["title"][:70]}…</div>' for p in info["posts"][:2])
-                st.html(f"""<div class="card" style="border-left:4px solid {BLU}"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:26px;font-weight:900;color:{TXT}">{tk}</div><div style="font-size:11px;color:{MUT};margin-bottom:8px">{q2['name'][:28]}</div></div><div style="text-align:right"><div style="font-size:17px;font-weight:700">${p2:,.2f}</div><div style="font-size:12px;color:{cc2};font-weight:600">{'▲' if chg2>=0 else '▼'} {abs(chg2):.2f}%</div></div></div><div style="display:flex;gap:12px;margin-bottom:10px"><div style="text-align:center"><div style="font-size:18px;font-weight:800;color:{BLU}">{info['mentions']}</div><div style="font-size:10px;color:{MUT}">mentions</div></div><div style="text-align:center"><div style="font-size:18px;font-weight:800;color:{GLD}">{info['score']//100}k</div><div style="font-size:10px;color:{MUT}">upvotes</div></div><div style="font-size:10px;color:{MUT};flex:1;padding-top:4px">{subs_str}</div></div>{posts_html}</div>""")
+                extra=(f'<div style="font-size:18px;font-weight:800;color:{BLU}">{it["watchers"]:,}</div><div style="font-size:10px;color:{MUT}">people watching</div>'
+                       if it.get("watchers") else f'<div style="font-size:18px;font-weight:800;color:{cc2}">{it.get("chg",0):+.2f}%</div><div style="font-size:10px;color:{MUT}">today</div>')
+                st.html(f"""<div class="card" style="border-left:4px solid {BLU}"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:26px;font-weight:900;color:{TXT}">{tk}</div><div style="font-size:11px;color:{MUT};margin-bottom:8px">{it['name'][:28]}</div></div><div style="text-align:right"><div style="font-size:17px;font-weight:700">${p2:,.2f}</div><div style="font-size:12px;color:{cc2};font-weight:600">{'▲' if chg2>=0 else '▼'} {abs(chg2):.2f}%</div></div></div><div style="margin:6px 0 4px">{extra}</div></div>""")
                 fig_mini=mini_price_chart(tk)
                 if fig_mini: st.plotly_chart(fig_mini,width='stretch',config={"displayModeBar":False})
-                if st.button(f"Analyze {tk}",key=f"anal_{tk}",width='stretch'): go_analyze(tk)
-        st.divider()
-        st.html(f"<div style='font-size:15px;font-weight:700;margin-bottom:12px'>All Trending Tickers</div>")
-        st.html(f'<div style="display:flex;font-size:10px;font-weight:700;color:{MUT};letter-spacing:.1em;padding:6px 12px;border-bottom:2px solid {BDR}"><span style="flex:0.6">TICKER</span><span style="flex:0.7">MENTIONS</span><span style="flex:0.8">PRICE</span><span style="flex:0.7">CHANGE</span><span style="flex:1.5">SUBREDDITS</span><span style="flex:0.5">GO</span></div>')
-        for i,(tk,info) in enumerate(trending[3:20],4):
-            q2=quick_quote(tk); cc2=G if q2["chg"]>=0 else R; subs_str=", ".join(f"r/{s}" for s in info["subs"][:3]); stripe=f"background:{BDR}22;" if i%2==0 else ""
-            rc=st.columns([0.6,0.7,0.8,0.7,1.5,0.5])
-            with rc[0]: st.html(f'<div style="{stripe}padding:8px 4px;font-weight:700;font-size:13px">{tk}</div>')
-            with rc[1]: st.html(f'<div style="{stripe}padding:8px 4px;color:{BLU};font-weight:600">{info["mentions"]}</div>')
-            with rc[2]: st.html(f'<div style="{stripe}padding:8px 4px;font-weight:600">${q2["price"]:,.2f}</div>')
-            with rc[3]: st.html(f'<div style="{stripe}padding:8px 4px;color:{cc2};font-weight:600">{"▲" if q2["chg"]>=0 else "▼"} {abs(q2["chg"]):.2f}%</div>')
-            with rc[4]: st.html(f'<div style="{stripe}padding:8px 4px;font-size:11px;color:{MUT}">{subs_str}</div>')
+                if st.button(f"Analyze {tk}",key=f"trend_{tk}",width='stretch'): go_analyze(tk)
+        st.html(f"<div class='seclabel'>Full list</div>")
+        metric_hdr="WATCHING" if src=="StockTwits" else "TODAY"
+        st.html(f'<div style="display:flex;font-size:10px;font-weight:700;color:{MUT};letter-spacing:.1em;padding:6px 12px;border-bottom:2px solid {BDR}"><span style="flex:0.6">TICKER</span><span style="flex:1.6">NAME</span><span style="flex:0.9;text-align:right">PRICE</span><span style="flex:0.8;text-align:right">CHANGE</span><span style="flex:0.9;text-align:right">{metric_hdr}</span><span style="flex:0.5;text-align:center">GO</span></div>')
+        for i,it in enumerate(items[3:18],4):
+            tk=it["ticker"]; q2=quick_quote(tk); cc2=G if q2["chg"]>=0 else R; stripe=f"background:{BDR}22;" if i%2==0 else ""
+            metric=(f'{it["watchers"]:,}' if src=="StockTwits" and it.get("watchers") else f'{it.get("chg",0):+.2f}%')
+            rc=st.columns([0.6,1.6,0.9,0.8,0.9,0.5])
+            with rc[0]: st.html(f'<div style="{stripe}padding:8px 4px;font-weight:800;font-size:13px">{tk}</div>')
+            with rc[1]: st.html(f'<div style="{stripe}padding:8px 4px;font-size:12px;color:{MUT};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{it["name"][:30]}</div>')
+            with rc[2]: st.html(f'<div style="{stripe}padding:8px 4px;text-align:right;font-weight:600">${q2["price"]:,.2f}</div>')
+            with rc[3]: st.html(f'<div style="{stripe}padding:8px 4px;text-align:right;color:{cc2};font-weight:600">{"▲" if q2["chg"]>=0 else "▼"} {abs(q2["chg"]):.2f}%</div>')
+            with rc[4]: st.html(f'<div style="{stripe}padding:8px 4px;text-align:right;color:{BLU};font-weight:600">{metric}</div>')
             with rc[5]:
-                if st.button("Go",key=f"a_{tk}_{i}",width='stretch'): go_analyze(tk)
+                if st.button("Go",key=f"tr_{tk}_{i}",width='stretch'): go_analyze(tk)
 
 # ── Tab 5: Fundamentals ────────────────────────────────────
 with tab_fund:
-    if r is None: st.info("Run an analysis first using the sidebar.")
+    if r is None: st.info("Search for a stock in the bar at the top of the page to begin.")
     else:
         f_=r["fund"]; nm=f_.get("company_name") or r["ticker"]
         st.html(f"""<div style="margin-bottom:20px"><div style="font-size:22px;font-weight:800">{nm}</div><div style="color:{MUT};font-size:13px">{f_.get('sector','?')} · {f_.get('industry','?')} · {r['ticker']} · {fmoney(f_.get('market_cap'))}</div></div>""")
